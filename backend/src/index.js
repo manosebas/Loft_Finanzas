@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import { config } from './config.js';
 import { authRouter, requireAuth } from './auth.js';
 import { supabase } from './supabase.js';
+import { financeRouter } from './finance.js';
 
 const app = express();
 
@@ -22,6 +23,8 @@ app.use('/api', requireAuth);
 app.get('/api/status', (req, res) => {
   res.json({ ok: true, supabase: !!supabase });
 });
+
+app.use('/api', financeRouter);
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'No encontrado' }));
 
