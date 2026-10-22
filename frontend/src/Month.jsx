@@ -275,6 +275,22 @@ function ExpenseDetail({ row, monthId, run }) {
         <input placeholder="Nota (opcional)" value={note} onChange={(e) => setNote(e.target.value)} />
         <button type="submit">Registrar pago</button>
       </form>
+
+      <div className="remove-row">
+        {row.payments.length ? (
+          <span className="muted small">Para quitar este gasto del mes, borra primero sus pagos.</span>
+        ) : (
+          <button
+            className="link danger"
+            onClick={() =>
+              confirm(`¿Quitar ${row.name} de este mes?`) &&
+              run(() => api(`/months/${monthId}/categories/${row.id}`, { method: 'DELETE' }))
+            }
+          >
+            Quitar del mes
+          </button>
+        )}
+      </div>
     </div>
   );
 }

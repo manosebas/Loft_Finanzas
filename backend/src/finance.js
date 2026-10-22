@@ -86,6 +86,29 @@ financeRouter.post('/categories', async (req, res) => {
   res.status(201).json(data);
 });
 
+financeRouter.patch('/categories/:id', async (req, res) => {
+  const name = String(req.body?.name ?? '').trim();
+  if (!name) return res.status(400).json({ error: 'Nombre requerido' });
+  const { error } = await supabase.from('categories').update({ name }).eq('id', Number(req.params.id));
+  if (error?.code === '23505') return res.status(409).json({ error: 'Esa categoría ya existe' });
+  if (error) throw error;
+  res.json({ ok: true });
+});
+
+// Solo se puede borrar si ningún mes la usa (ni en presupuesto ni en pagos).
+financeRouter.delete('/categories/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  const [budgetUses, paymentUses] = await Promise.all([
+    q(supabase.from('budget_items').select('month_id').eq('category_id', id).limit(1)),
+    q(supabase.from('payments').select('id').eq('category_id', id).limit(1)),
+  ]);
+  if (budgetUses.length || paymentUses.length) {
+    return res.status(409).json({ error: 'La categoría se usa en algún mes. Quítala de esos meses primero.' });
+  }
+  await q(supabase.from('categories').delete().eq('id', id));
+  res.json({ ok: true });
+});
+
 financeRouter.get('/months/:year/:month', async (req, res) => {
   const year = Number(req.params.year);
   const month = Number(req.params.month);
@@ -155,6 +178,15 @@ financeRouter.put('/months/:id/budget/:categoryId', async (req, res) => {
   } else {
     await q(supabase.from('budget_items').upsert({ ...key, amount }));
   }
+  res.json({ ok: true });
+});
+
+// Quita la categoría del mes. Si tiene pagos registrados hay que borrarlos antes.
+financeRouter.delete('/months/:id/categories/:categoryId', async (req, res) => {
+  const key = { month_id: Number(req.params.id), category_id: Number(req.params.categoryId) };
+  const payments = await q(supabase.from('payments').select('id').match(key).limit(1));
+  if (payments.length) return res.status(409).json({ error: 'Este gasto tiene pagos en el mes. Bórralos primero.' });
+  await q(supabase.from('budget_items').delete().match(key));
   res.json({ ok: true });
 });
 

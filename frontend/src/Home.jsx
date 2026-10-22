@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Dashboard from './Dashboard.jsx';
 import Month from './Month.jsx';
+import Settings from './Settings.jsx';
 import { currentYearMonth } from './format.js';
 
 export default function Home({ onLogout }) {
@@ -23,15 +24,16 @@ export default function Home({ onLogout }) {
           <button className={view === 'month' ? 'tab active' : 'tab'} onClick={() => setView('month')}>
             Mes
           </button>
+          <button className={view === 'settings' ? 'tab active' : 'tab'} onClick={() => setView('settings')}>
+            Configuración
+          </button>
         </nav>
         <button className="link" onClick={onLogout}>Salir</button>
       </header>
       <main className="content">
-        {view === 'dashboard' ? (
-          <Dashboard onOpenMonth={openMonth} />
-        ) : (
-          <Month selected={selected} onChange={setSelected} />
-        )}
+        {view === 'dashboard' && <Dashboard onOpenMonth={openMonth} />}
+        {view === 'month' && <Month selected={selected} onChange={setSelected} />}
+        {view === 'settings' && <Settings />}
       </main>
     </div>
   );
