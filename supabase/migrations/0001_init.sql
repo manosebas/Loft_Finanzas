@@ -1,0 +1,13 @@
+-- Migración inicial. Ejecutar en Supabase > SQL Editor.
+-- El backend usa la service role key, que ignora RLS.
+-- Habilitar RLS en cada tabla SIN políticas: así la anon key pública no puede leer nada.
+
+-- Ejemplo:
+-- create table public.movimientos (
+--   id bigint generated always as identity primary key,
+--   fecha date not null default current_date,
+--   descripcion text not null,
+--   monto numeric(14, 2) not null,
+--   created_at timestamptz not null default now()
+-- );
+-- alter table public.movimientos enable row level security;
